@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extractor Machine 4000</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Victor+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { mono: ['Victor Mono', 'monospace'] },
+          colors: {
+            periwinkle: {
+              DEFAULT: '#bbbdf6',
+              100: '#0a0c4d',
+              200: '#141899',
+              300: '#2228e2',
+              400: '#6f73ec',
+              500: '#bbbdf6',
+              600: '#c9caf8',
+              700: '#d6d8fa',
+              800: '#e4e5fb',
+              900: '#f1f2fd',
+            },
+            tropical_indigo: {
+              DEFAULT: '#9893da',
+              100: '#151337',
+              200: '#2a256d',
+              300: '#3f38a4',
+              400: '#655ec8',
+              500: '#9893da',
+              600: '#aeaae2',
+              700: '#c2bfe9',
+              800: '#d6d4f0',
+              900: '#ebeaf8',
+            },
+            cool_gray: {
+              DEFAULT: '#797a9e',
+              100: '#181821',
+              200: '#2f3041',
+              300: '#474862',
+              400: '#5e5f82',
+              500: '#797a9e',
+              600: '#9595b2',
+              700: '#afb0c5',
+              800: '#cacad8',
+              900: '#e4e5ec',
+            },
+            dim_gray: {
+              DEFAULT: '#625f63',
+              100: '#141314',
+              200: '#272628',
+              300: '#3b393b',
+              400: '#4e4c4f',
+              500: '#625f63',
+              600: '#827e83',
+              700: '#a19ea2',
+              800: '#c0bec1',
+              900: '#e0dfe0',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      @apply bg-white font-mono text-black;
+    }
+    .schematic-step.active {
+      background-color: #f1f2fd; /* periwinkle-900 */
+      border-color: #6f73ec;     /* periwinkle-400 */
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-6">
+
+  <!-- Title -->
+  <h1 class="text-4xl font-extrabold tracking-widest mb-6">EXTRACTOR MACHINE 4000</h1>
+
+  <!-- Controls -->
+  <div class="w-full max-w-3xl space-y-4">
+    <input type="file" id="audio-upload" class="w-full p-2 border border-cool_gray-400 rounded" accept="audio/*">
+    <p id="file-name" class="text-sm text-cool_gray-500">No file selected</p>
+
+    <div class="flex space-x-2">
+      <button id="male-btn" class="vocal-range-btn flex-1 bg-dim_gray-200 p-2 rounded">Male</button>
+      <button id="female-btn" class="vocal-range-btn flex-1 bg-dim_gray-200 p-2 rounded">Female</button>
+      <button id="both-btn" class="vocal-range-btn flex-1 bg-dim_gray-200 p-2 rounded">Both</button>
+    </div>
+
+    <!-- Sliders -->
+    <label class="block">
+      <span class="text-sm">Separation Aggressiveness</span>
+      <input type="range" id="aggressiveness" min="1" max="10" value="5" class="w-full">
+    </label>
+
+    <label class="flex items-center space-x-2">
+      <input type="checkbox" id="snare-suppression" class="h-4 w-4">
+      <span class="text-sm">Enable Snare Suppression</span>
+    </label>
+
+    <button id="process-btn" disabled class="w-full bg-periwinkle-400 text-white py-2 px-4 rounded flex items-center justify-center space-x-2">
+      <span id="process-btn-text">Separate Vocals</span>
+      <span id="loader" class="hidden animate-spin border-2 border-white border-t-transparent rounded-full h-4 w-4"></span>
+    </button>
+  </div>
+
+  <!-- Schematic -->
+<div class="border-t border-dim_gray-300 pt-6">
+  <h2 class="text-2xl font-bold text-center mb-6 tracking-widest">PROCESS SCHEMATIC</h2>
+  
+  <!-- Grid Background -->
+  <div class="relative flex flex-col items-center space-y-2 text-center text-sm font-bold tracking-wide">
+    <!-- Dot grid pattern -->
+    <div class="absolute inset-0 bg-[radial-gradient(circle,_#d6d4f0_1px,_transparent_1px)] [background-size:20px_20px] opacity-40"></div>
+
+    <!-- Flowchart boxes -->
+    <div class="relative p-2 border-2 border-dim_gray-400 border-dashed rounded-sm w-64 bg-white text-black">
+      AUDIO INPUT
+    </div>
+    <div class="relative text-dim_gray-500">⇩</div>
+    <div class="relative p-2 border-2 border-dim_gray-400 border-dashed rounded-sm w-64 bg-white text-black">
+      FAST FOURIER TRANSFORM (FFT)
+    </div>
+    <div class="relative text-dim_gray-500">⇩</div>
+    <div class="relative p-2 border-2 border-dim_gray-400 border-dashed rounded-sm w-64 bg-white text-black">
+      FREQUENCY SELECTION<br>
+      [ <span class="text-periwinkle-400">FUNDAMENTALS</span> + HARMONICS ]
+    </div>
+    <div class="relative text-dim_gray-500">⇩</div>
+    <div class="relative p-2 border-2 border-dim_gray-400 border-dashed rounded-sm w-64 bg-white text-black">
+      APPLY VOCAL MASK
+    </div>
+    <div class="relative text-dim_gray-500">⇩</div>
+    <div class="relative p-2 border-2 border-dim_gray-400 border-dashed rounded-sm w-64 bg-white text-black">
+      INVERSE FFT → AUDIO OUTPUT
+    </div>
+  </div>
+</div>
+
+  <!-- Playback Section -->
+  <div id="playback-section" class="hidden mt-6 w-full max-w-3xl text-center">
+    <audio id="result-audio" controls class="w-full mb-4"></audio>
+    <a id="download-link" class="bg-tropical_indigo-400 text-white px-4 py-2 rounded inline-block" href="#">Download Vocals</a>
+  </div>
+
+    <script>
+        /*
+         * Free FFT and convolution (JavaScript) - by Project Nayuki
+         * https://www.nayuki.io/page/free-small-fft-in-multiple-languages
+         */
+        "use strict";
+        function transform(real, imag) {
+            const n = real.length;
+            if (n !== imag.length) throw "Mismatched lengths";
+            if (n === 0) return;
+            if ((n & (n - 1)) === 0) transformRadix2(real, imag);
+            else { /* Fallback for non-power-of-2, not used in this app */ }
+        }
+        function inverseTransform(real, imag) { transform(imag, real); }
+        function transformRadix2(real, imag) {
+            const n = real.length;
+            if (n <= 1) return;
+            const levels = Math.log2(n);
+            if (Math.floor(levels) !== levels) throw "Length is not a power of 2";
+            const cosTable = new Array(n / 2);
+            const sinTable = new Array(n / 2);
+            for (let i = 0; i < n / 2; i++) {
+                cosTable[i] = Math.cos(2 * Math.PI * i / n);
+                sinTable[i] = Math.sin(2 * Math.PI * i / n);
+            }
+            for (let i = 0; i < n; i++) {
+                const j = parseInt(i.toString(2).padStart(levels, '0').split('').reverse().join(''), 2);
+                if (j > i) {
+                    [real[i], real[j]] = [real[j], real[i]];
+                    [imag[i], imag[j]] = [imag[j], imag[i]];
+                }
+            }
+            for (let size = 2; size <= n; size *= 2) {
+                const halfsize = size / 2;
+                const tablestep = n / size;
+                for (let i = 0; i < n; i += size) {
+                    for (let j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
+                        const tpre = real[j + halfsize] * cosTable[k] + imag[j + halfsize] * sinTable[k];
+                        const tpim = -real[j + halfsize] * sinTable[k] + imag[j + halfsize] * cosTable[k];
+                        real[j + halfsize] = real[j] - tpre;
+                        imag[j + halfsize] = imag[j] - tpim;
+                        real[j] += tpre;
+                        imag[j] += tpim;
+                    }
+                }
+            }
+        }
+
+        // --- DOM Elements ---
+        const audioUpload = document.getElementById('audio-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+        const processBtn = document.getElementById('process-btn');
+        const processBtnText = document.getElementById('process-btn-text');
+        const loader = document.getElementById('loader');
+        const playbackSection = document.getElementById('playback-section');
+        const resultAudio = document.getElementById('result-audio');
+        const downloadLink = document.getElementById('download-link');
+        const vocalRangeBtns = document.querySelectorAll('.vocal-range-btn');
+        const aggressionSlider = document.getElementById('aggression-slider');
+        const aggressionValue = document.getElementById('aggression-value');
+        const snareSlider = document.getElementById('snare-slider');
+        const snareValue = document.getElementById('snare-value');
+
+        // --- App State ---
+        let audioFile = null;
+        let vocalSelection = 'both';
+        let fftSize = 4096; // Must be a power of 2 for Radix2 FFT
+
+        // --- Event Listeners ---
+        aggressionSlider.addEventListener('input', (e) => {
+            aggressionValue.textContent = parseFloat(e.target.value).toFixed(1);
+        });
+        snareSlider.addEventListener('input', (e) => {
+            snareValue.textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        audioUpload.addEventListener('change', (event) => {
+            audioFile = event.target.files[0];
+            if (audioFile) {
+                fileNameDisplay.textContent = audioFile.name;
+                processBtn.disabled = false;
+            } else {
+            fileNameDisplay.textContent = "No file selected";
+            processBtn.disabled = true;
+            }
+        });
+
+        vocalRangeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                vocalRangeBtns.forEach(b => b.classList.remove('bg-cyan-600', 'ring-2', 'ring-cyan-400', 'bg-indigo-500', 'bg-pink-500'));
+                btn.classList.add('bg-cyan-600', 'ring-2', 'ring-cyan-400');
+                vocalSelection = btn.id.replace('-btn', '');
+                 if(vocalSelection === 'male') btn.classList.add('bg-indigo-500');
+                 if(vocalSelection === 'female') btn.classList.add('bg-pink-500');
+            });
+        });
+
+        processBtn.addEventListener('click', () => {
+            if (!audioFile) return;
+            setLoading(true);
+            setTimeout(async () => {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const arrayBuffer = await audioFile.arrayBuffer();
+                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    const originalSignal = audioBuffer.getChannelData(0);
+                    const isolatedSignal = await processAudio(originalSignal, audioBuffer.sampleRate, vocalSelection);
+                    const resultBuffer = audioContext.createBuffer(1, isolatedSignal.length, audioBuffer.sampleRate);
+                    resultBuffer.copyToChannel(isolatedSignal, 0);
+                    const audioBlob = bufferToWave(resultBuffer);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    resultAudio.src = audioUrl;
+                    downloadLink.href = audioUrl;
+                    downloadLink.download = `vocals_${audioFile.name}`;
+                    playbackSection.classList.remove('hidden');
+                } catch (error) {
+                    console.error("Error processing audio:", error);
+                    alert("Could not process the audio file. It might be corrupted or in an unsupported format.");
+                } finally {
+                    setLoading(false);
+                }
+            }, 50);
+        });
+
+        // --- Core Logic ---
+        function setLoading(isLoading) {
+             processBtn.disabled = isLoading;
+             processBtnText.textContent = isLoading ? "Processing..." : "Separate Vocals";
+             loader.classList.toggle('hidden', !isLoading);
+        }
+        
+        async function processAudio(signal, sampleRate, range) {
+            const hopLength = fftSize / 4;
+            const numFrames = Math.floor((signal.length - fftSize) / hopLength) - 1;
+            const isolatedSignal = new Float32Array(signal.length).fill(0);
+            
+            const staticVocalMask = createVocalMask(fftSize, sampleRate, range); // This is now a "guide" mask
+            const hanningWindow = new Float32Array(fftSize).map((_, i) => 0.5 * (1 - Math.cos(2 * Math.PI * i / (fftSize - 1))));
+
+            const noiseProfile = estimateNoiseProfile(signal, 5, hanningWindow);
+            const aggression = parseFloat(aggressionSlider.value);
+            const snareSuppression = parseFloat(snareSlider.value);
+            const freqResolution = sampleRate / fftSize;
+            const snareBand = [1000, 5000];
+
+            for (let i = 0; i < numFrames; i++) {
+                const start = i * hopLength;
+                const frame = signal.slice(start, start + fftSize);
+                const windowedFrame = frame.map((val, j) => val * hanningWindow[j]);
+                
+                const { magnitudes, phases } = stft(windowedFrame);
+                
+                // 1. ADAPTIVE MASKING: Create a dynamic mask for this specific frame
+                const adaptiveMaskedMagnitudes = magnitudes.map((mag, j) => {
+                    if (mag < 1e-6) return 0; // Avoid division by zero
+                    const gain = 1 - (aggression * noiseProfile[j] / mag);
+                    const adaptiveMaskValue = Math.max(0, Math.min(1, gain));
+                    return mag * adaptiveMaskValue;
+                });
+
+                // 2. DYNAMIC EQ: Attenuate snare clash frequencies
+                const eqMagnitudes = adaptiveMaskedMagnitudes.map((mag, j) => {
+                    const freq = j * freqResolution;
+                    if (freq >= snareBand[0] && freq <= snareBand[1] && staticVocalMask[j] > 0.5) {
+                        return mag * (1 - snareSuppression);
+                    }
+                    return mag;
+                });
+
+                // 3. FINAL GATING: Apply the static vocal mask to clean up remaining non-vocal frequencies
+                const filteredMagnitudes = eqMagnitudes.map((mag, j) => mag * staticVocalMask[j]);
+
+                const processedFrame = istft(filteredMagnitudes, phases);
+                for (let j = 0; j < fftSize; j++) {
+                    isolatedSignal[start + j] += processedFrame[j] * hanningWindow[j];
+                }
+            }
+            return isolatedSignal;
+        }
+
+        function estimateNoiseProfile(signal, numFramesToAverage, window) {
+            const noiseProfile = new Float32Array(fftSize / 2 + 1).fill(0);
+            const hopLength = fftSize / 4;
+            for(let i = 0; i < numFramesToAverage; i++) {
+                const start = i * hopLength;
+                 if (start + fftSize > signal.length) break;
+                const frame = signal.slice(start, start + fftSize);
+                const windowedFrame = frame.map((val, j) => val * window[j]);
+                const { magnitudes } = stft(windowedFrame);
+                magnitudes.forEach((mag, j) => noiseProfile[j] += mag);
+            }
+            return noiseProfile.map(v => v / numFramesToAverage);
+        }
+
+        function stft(frame) {
+            const real = Array.from(frame);
+            const imag = new Array(frame.length).fill(0);
+            transform(real, imag);
+            const magnitudes = new Float32Array(fftSize / 2 + 1);
+            const phases = new Float32Array(fftSize / 2 + 1);
+            for (let i = 0; i <= fftSize / 2; i++) {
+                const re = real[i];
+                const im = imag[i];
+                magnitudes[i] = Math.sqrt(re * re + im * im) / fftSize;
+                phases[i] = Math.atan2(im, re);
+            }
+            return { magnitudes, phases };
+        }
+
+        function istft(magnitudes, phases) {
+            const N = fftSize;
+            const real = new Array(N).fill(0);
+            const imag = new Array(N).fill(0);
+            for (let i = 0; i <= N / 2; i++) {
+                const mag = magnitudes[i] * N;
+                real[i] = mag * Math.cos(phases[i]);
+                imag[i] = mag * Math.sin(phases[i]);
+                if (i > 0 && i < N / 2) {
+                    real[N - i] = real[i];
+                    imag[N - i] = -imag[i];
+                }
+            }
+            inverseTransform(real, imag);
+            return new Float32Array(real.map(x => x / N));
+        }
+
+        function createVocalMask(fftSize, sampleRate, range) {
+            const mask = new Float32Array(fftSize / 2 + 1).fill(0);
+            const freqResolution = sampleRate / fftSize;
+            const ranges = {
+                male: { fundamental: [85, 180], air: [8000, 12000] },
+                female: { fundamental: [165, 255], air: [9000, 13000] },
+                both: { fundamental: [85, 255], air: [8000, 13000] }
+            };
+            const selectedRange = ranges[range];
+            for (let i = 0; i < mask.length; i++) {
+                const freq = i * freqResolution;
+                let gain = 0;
+                if (freq >= selectedRange.fundamental[0] && freq <= selectedRange.fundamental[1]) gain = 1.0;
+                for (let h = 2; h <= 10; h++) {
+                    if (freq >= selectedRange.fundamental[0] * h && freq <= selectedRange.fundamental[1] * h) {
+                        gain = Math.max(gain, 1.0 / (h * 0.75));
+                    }
+                }
+                if (freq >= 4000 && freq <= 7500) gain = Math.max(gain, 0.6); // Presence/Sibilance
+                if (freq >= selectedRange.air[0] && freq <= selectedRange.air[1]) gain = Math.max(gain, 0.7);
+                mask[i] = gain;
+            }
+            return mask;
+        }
+
+        function bufferToWave(abuffer) {
+            const numOfChan = abuffer.numberOfChannels,
+                len = abuffer.length * numOfChan * 2 + 44,
+                buffer = new ArrayBuffer(len),
+                view = new DataView(buffer),
+                channels = [];
+            let offset = 0, pos = 0;
+
+            function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+            function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+            setUint32(0x46464952); setUint32(len - 8); setUint32(0x45564157); // RIFF, file size, WAVE
+            setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan); // fmt chunk
+            setUint32(abuffer.sampleRate); setUint32(abuffer.sampleRate * 2 * numOfChan); // sample rate, byte rate
+            setUint16(numOfChan * 2); setUint16(16); setUint32(0x61746164); // block align, bits/sample, data chunk
+            setUint32(len - pos - 4);
+            
+            for (let i = 0; i < abuffer.numberOfChannels; i++) channels.push(abuffer.getChannelData(i));
+            
+            while (offset < abuffer.length) {
+                for (let i = 0; i < numOfChan; i++) {
+                    let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                    sample = sample < 0 ? sample * 32768 : sample * 32767;
+                    view.setInt16(pos, sample, true);
+                    pos += 2;
+                }
+                offset++;
+            }
+            return new Blob([view], { type: 'audio/wav' });
+        }
+    </script>
+    <script>
+    // highlightStep + updateProgress go here
+    function highlightStep(stepId) {
+      document.querySelectorAll('.schematic-step').forEach(el => el.classList.remove('active'));
+      const step = document.getElementById(stepId);
+      if (step) step.classList.add('active');
+    }
+
+    function updateProgress(percent, stage = null) {
+      const bar = document.getElementById('progress-bar');
+      const text = document.getElementById('progress-text');
+      bar.style.width = percent + "%";
+      text.textContent = `Progress: ${percent.toFixed(1)}%`;
+
+      if (stage) {
+        const colorMap = {
+          input: "bg-cool_gray-400",
+          fft: "bg-tropical_indigo-400",
+          selection: "bg-periwinkle-400",
+          mask: "bg-dim_gray-400",
+          output: "bg-green-400",
+        };
+        bar.className = `h-4 transition-all duration-200 ${colorMap[stage]}`;
+      }
+    }
+  </script>
+</body>
+</html>
+
