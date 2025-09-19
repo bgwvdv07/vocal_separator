@@ -28,6 +28,30 @@
               800: '#e4e5fb',
               900: '#f1f2fd',
             },
+            coral: {
+              DEFAULT: '#F88379',
+              100: '#0a0c4d',
+              200: '#141899',
+              300: '#2228e2',
+              400: '#6f73ec',
+              500: '#bbbdf6',
+              600: '#c9caf8',
+              700: '#d6d8fa',
+              800: '#e4e5fb',
+              900: '#f1f2fd',
+            },
+            orange: {
+              DEFAULT: '#FFA500',
+              100: '#0a0c4d',
+              200: '#141899',
+              300: '#2228e2',
+              400: '#6f73ec',
+              500: '#bbbdf6',
+              600: '#c9caf8',
+              700: '#d6d8fa',
+              800: '#e4e5fb',
+              900: '#f1f2fd',
+            },
             tropical_indigo: {
               DEFAULT: '#9893da',
               100: '#151337',
@@ -121,7 +145,7 @@
         <div class="space-y-3">
             <label class="block text-sm font-medium text-gray-300">2. Select Vocal Range</label>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <button id="male-btn" class="vocal-range-btn bg-white hover:bg-cool_gray-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">Male</button>
+                <button id="male-btn" class="vocal-range-btn bg-white hover:bg-orange text-black font-bold py-2 px-4 rounded-lg transition-colors">Male</button>
                 <button id="female-btn" class="vocal-range-btn bg-white hover:bg-dim_gray-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">Female</button>
                  <button id="both-btn" class="vocal-range-btn bg-white ring-2 ring-periwinkle-500 text-black font-bold py-2 px-4 rounded-lg transition-colors">Both</button>
             </div>
@@ -132,17 +156,29 @@
         <div class="space-y-4">
              <div class="space-y-3">
                 <label for="aggression-slider" class="block text-sm font-medium text-gray-300">3. Separation Aggressiveness: <span id="aggression-value">1.5</span></label>
-                <input id="aggression-slider" type="range" min="1" max="5" value="1.5" step="0.1" class="w-full h-2 bg-tropical_indigo-200 rounded-lg appearance-none cursor-pointer">
+                <input id="aggression-slider" type="range" min="1" max="5" value="1.5" step="0.1" class="w-full h-2 bg-tropical_indigo-100 rounded-lg appearance-none cursor-pointer">
             </div>
             <div class="space-y-3">
                 <label for="snare-slider" class="block text-sm font-medium text-gray-300">4. Snare Suppression: <span id="snare-value">0.3</span></label>
-                <input id="snare-slider" type="range" min="0" max="1" value="0.3" step="0.05" class="w-full h-2 bg-tropical_indigo-800 rounded-lg appearance-none cursor-pointer">
+                <input id="snare-slider" type="range" min="0" max="1" value="0.3" step="0.05" class="w-full h-2 bg-tropical_indigo-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+             <div class="space-y-3">
+                <label for="clarity-slider" class="block text-sm font-medium text-gray-300">5. Vocal Clarity: <span id="clarity-value">0.15</span></label>
+                <input id="clarity-slider" type="range" min="0" max="1" value="0.15" step="0.05" class="w-full h-2 bg-tropical_indigo-300 rounded-lg appearance-none cursor-pointer">
+            </div>
+            <div class="space-y-3">
+                <label for="gate-slider" class="block text-sm font-medium text-gray-300">6. Noise Gate Threshold: <span id="gate-value">0.010</span></label>
+                <input id="gate-slider" type="range" min="0" max="0.1" value="0.01" step="0.001" class="w-full h-2 bg-tropical_indigo-400 rounded-lg appearance-none cursor-pointer">
+            </div>
+             <div class="space-y-3">
+                <label for="compressor-slider" class="block text-sm font-medium text-gray-300">7. Vocal Compression: <span id="compressor-value">2.0</span></label>
+                <input id="compressor-slider" type="range" min="1" max="10" value="2.0" step="0.1" class="w-full h-2 bg-tropical_indigo-500 rounded-lg appearance-none cursor-pointer">
             </div>
         </div>
 
         <!-- Process Button -->
         <button id="process-btn" class="w-full bg-white hover:bg-tropical_indigo-700 disabled:cursor-not-allowed text-black font-bold py-3 px-4 rounded-lg transition-colors text-lg flex items-center justify-center" disabled>
-             <span id="process-btn-text">Start </span>
+             <span id="process-btn-text">Start Processing</span>
              <div id="loader" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div>
         </button>
 
@@ -154,7 +190,7 @@
         </div>
         <!-- Schematic -->
 <div class="border-t border-dim_gray-300 pt-6">
-  <h2 class="text-2xl font-bold text-center mb-6 tracking-widest">PROCESS SCHEMATIC</h2>
+  <h2 class="text-2xl font-bold text-center mb-6 tracking-widest">DSP SCHEMATIC</h2>
   
   <!-- Grid Background -->
   <div class="relative flex flex-col items-center space-y-2 text-center text-sm font-bold tracking-wide">
@@ -209,6 +245,10 @@
   </div>
 </div>
 	<p class="text-center text-xs text-gray-500 mt-6">&copy; 2025 Vocal Separator. All Rights Reserved.</p>
+    </div>
+     <div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50">
+        <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-500 h-24 w-24 mb-4"></div>
+        <p id="loading-text" class="text-lg text-white">Processing...</p>
     </div>
 
     <script>
@@ -273,11 +313,20 @@
         const aggressionValue = document.getElementById('aggression-value');
         const snareSlider = document.getElementById('snare-slider');
         const snareValue = document.getElementById('snare-value');
+        const claritySlider = document.getElementById('clarity-slider');
+        const clarityValue = document.getElementById('clarity-value');
+        const gateSlider = document.getElementById('gate-slider');
+        const gateValue = document.getElementById('gate-value');
+        const compressorSlider = document.getElementById('compressor-slider');
+        const compressorValue = document.getElementById('compressor-value');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
 
         // --- App State ---
         let audioFile = null;
         let vocalSelection = 'both';
         let fftSize = 4096; // Must be a power of 2 for Radix2 FFT
+        let lastReportedProgress = -1;
 
         // --- Event Listeners ---
         aggressionSlider.addEventListener('input', (e) => {
@@ -285,6 +334,15 @@
         });
         snareSlider.addEventListener('input', (e) => {
             snareValue.textContent = parseFloat(e.target.value).toFixed(2);
+        });
+         claritySlider.addEventListener('input', (e) => {
+            clarityValue.textContent = parseFloat(e.target.value).toFixed(2);
+        });
+        gateSlider.addEventListener('input', (e) => {
+            gateValue.textContent = parseFloat(e.target.value).toFixed(3);
+        });
+        compressorSlider.addEventListener('input', (e) => {
+            compressorValue.textContent = parseFloat(e.target.value).toFixed(1);
         });
 
         audioUpload.addEventListener('change', (event) => {
@@ -325,9 +383,11 @@
                 try {
                     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     const arrayBuffer = await audioFile.arrayBuffer();
+                    updateProgressText("Decoding audio...");
                     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                     const originalSignal = audioBuffer.getChannelData(0);
                     const isolatedSignal = await processAudio(originalSignal, audioBuffer.sampleRate, vocalSelection);
+                    updateProgressText("Finalizing...");
                     const resultBuffer = audioContext.createBuffer(1, isolatedSignal.length, audioBuffer.sampleRate);
                     resultBuffer.copyToChannel(isolatedSignal, 0);
                     const audioBlob = bufferToWave(resultBuffer);
@@ -348,8 +408,23 @@
         // --- Core Logic ---
         function setLoading(isLoading) {
              processBtn.disabled = isLoading;
-             processBtnText.textContent = isLoading ? "Processing..." : "Separate Vocals";
-             loader.classList.toggle('hidden', !isLoading);
+             if (isLoading) {
+                lastReportedProgress = -1; // Reset progress
+                loadingOverlay.classList.remove('hidden');
+                updateProgress(0);
+             } else {
+                loadingOverlay.classList.add('hidden');
+             }
+        }
+         function updateProgress(progress) {
+             if (progress > lastReportedProgress) {
+                loadingText.textContent = `Processing... ${progress}%`;
+                lastReportedProgress = progress;
+            }
+        }
+        
+        function updateProgressText(text) {
+            loadingText.textContent = text;
         }
         
         async function processAudio(signal, sampleRate, range) {
@@ -363,8 +438,13 @@
             const noiseProfile = estimateNoiseProfile(signal, 5, hanningWindow);
             const aggression = parseFloat(aggressionSlider.value);
             const snareSuppression = parseFloat(snareSlider.value);
+            const clarityAmount = parseFloat(claritySlider.value);
+            const gateThreshold = parseFloat(gateSlider.value);
+            const compressionRatio = parseFloat(compressorSlider.value);
             const freqResolution = sampleRate / fftSize;
             const snareBand = [1000, 5000];
+            const clarityBand = [4000, 10000];
+            const compressionThreshold = 0.08; // Fixed threshold for compressor
 
             for (let i = 0; i < numFrames; i++) {
                 const start = i * hopLength;
@@ -390,16 +470,53 @@
                     return mag;
                 });
 
-                // 3. FINAL GATING: Apply the static vocal mask to clean up remaining non-vocal frequencies
+             // 3. FINAL GATING
                 const filteredMagnitudes = eqMagnitudes.map((mag, j) => mag * staticVocalMask[j]);
 
-                const processedFrame = istft(filteredMagnitudes, phases);
+                // 4. CLARITY ENHANCEMENT
+                const finalMagnitudes = filteredMagnitudes.map((mag, j) => {
+                    const freq = j * freqResolution;
+                    if (freq >= clarityBand[0] && freq <= clarityBand[1] && clarityAmount > 0) {
+                        return mag * (1 - clarityAmount) + magnitudes[j] * clarityAmount;
+                    }
+                    return mag;
+                });
+
+                const processedFrame = istft(finalMagnitudes, phases);
                 for (let j = 0; j < fftSize; j++) {
                     isolatedSignal[start + j] += processedFrame[j] * hanningWindow[j];
                 }
+
+                const progress = Math.round(((i + 1) / numFrames) * 100);
+                updateProgress(progress);
             }
+
+            updateProgressText("Applying final touches...");
+
+            // 5. NOISE GATING
+            if (gateThreshold > 0) {
+                for (let i = 0; i < isolatedSignal.length; i++) {
+                    if (Math.abs(isolatedSignal[i]) < gateThreshold) {
+                        isolatedSignal[i] = 0;
+                    }
+                }
+            }
+
+            // 6. COMPRESSION
+            if (compressionRatio > 1) {
+                for (let i = 0; i < isolatedSignal.length; i++) {
+                    const sample = isolatedSignal[i];
+                    if (Math.abs(sample) > compressionThreshold) {
+                        const amountOver = Math.abs(sample) - compressionThreshold;
+                        const compressedAmount = amountOver / compressionRatio;
+                        isolatedSignal[i] = (compressionThreshold + compressedAmount) * Math.sign(sample);
+                    }
+                }
+            }
+
             return isolatedSignal;
         }
+
 
         function estimateNoiseProfile(signal, numFramesToAverage, window) {
             const noiseProfile = new Float32Array(fftSize / 2 + 1).fill(0);
@@ -448,29 +565,54 @@
         }
 
         function createVocalMask(fftSize, sampleRate, range) {
-            const mask = new Float32Array(fftSize / 2 + 1).fill(0);
-            const freqResolution = sampleRate / fftSize;
-            const ranges = {
-                male: { fundamental: [85, 180], air: [8000, 12000] },
-                female: { fundamental: [165, 255], air: [9000, 13000] },
-                both: { fundamental: [85, 255], air: [8000, 13000] }
-            };
-            const selectedRange = ranges[range];
-            for (let i = 0; i < mask.length; i++) {
-                const freq = i * freqResolution;
-                let gain = 0;
-                if (freq >= selectedRange.fundamental[0] && freq <= selectedRange.fundamental[1]) gain = 1.0;
-                for (let h = 2; h <= 10; h++) {
-                    if (freq >= selectedRange.fundamental[0] * h && freq <= selectedRange.fundamental[1] * h) {
-                        gain = Math.max(gain, 1.0 / (h * 0.75));
-                    }
-                }
-                if (freq >= 4000 && freq <= 7500) gain = Math.max(gain, 0.6); // Presence/Sibilance
-                if (freq >= selectedRange.air[0] && freq <= selectedRange.air[1]) gain = Math.max(gain, 0.7);
-                mask[i] = gain;
-            }
-            return mask;
+    const mask = new Float32Array(fftSize / 2 + 1).fill(0);
+    const freqResolution = sampleRate / fftSize;
+    const ranges = {
+        male: { fundamental: [85, 180], air: [8000, 12000] },
+        female: { fundamental: [165, 255], air: [9000, 13000] },
+        both: { fundamental: [85, 255], air: [8000, 13000] }
+    };
+    const selectedRange = ranges[range];
+
+    for (let i = 0; i < mask.length; i++) {
+        const freq = i * freqResolution;
+        let gain = 0;
+
+        // Fundamental range
+        if (freq >= selectedRange.fundamental[0] && freq <= selectedRange.fundamental[1]) {
+            gain = 1.0;
         }
+
+        // Harmonics with a more natural rolloff
+        for (let h = 2; h <= 12; h++) { // Check up to the 12th harmonic
+            const harmonicStart = selectedRange.fundamental[0] * h;
+            const harmonicEnd = selectedRange.fundamental[1] * h;
+            if (freq >= harmonicStart && freq <= harmonicEnd) {
+                // Use a logarithmic decay for a more natural sound
+                const harmonicGain = 1.0 / (1 + Math.log2(h));
+                gain = Math.max(gain, harmonicGain);
+            }
+        }
+
+        // Boost formant/presence regions for intelligibility
+        if (freq >= 2000 && freq <= 4000) {
+            gain = Math.max(gain, 0.75);
+        }
+        
+        // Sibilance
+        if (freq > 4000 && freq <= 7500) {
+             gain = Math.max(gain, 0.6);
+        }
+
+        // Air
+        if (freq >= selectedRange.air[0] && freq <= selectedRange.air[1]) {
+            gain = Math.max(gain, 0.7);
+        }
+
+        mask[i] = gain;
+    }
+    return mask;
+}
 
         function bufferToWave(abuffer) {
             const numOfChan = abuffer.numberOfChannels,
